@@ -33,7 +33,7 @@ class MainSpiderSpider(scrapy.Spider):
         # Subcategory = response.css('div.content > ul.flyout-menu.catalog-categories > li ')
         images_object = items.ImagesDownload()
         image_list = []
-        aa=0
+        # aa=0
         for Category_i in Main_Category_list:
             Category=items.CategoryItem()
             Category['CategoryTitle']=Category_i.css('span.subcategory-name ::text').get()
@@ -46,36 +46,36 @@ class MainSpiderSpider(scrapy.Spider):
             # else:
             #     aa +=1
             yield scrapy.Request(Category_Link , 
-                                callback=self.SubCategory_parse, 
-                                cb_kwargs={'category': Category,
-                                        'images_list':image_list,
-                                        'images_object':images_object} )
+                                    callback=self.SubCategory_parse, 
+                                    cb_kwargs={'category': Category,
+                                            'images_list':image_list,
+                                            'images_object':images_object} )
             images_object['image_urls']= [Category['CategoryImageURL']]
             yield images_object
-            
+                
     def SubCategory_parse(self, response,category,images_list,images_object):
         Main_Body=response.css('div.flex-container > div#content')
         if Main_Body:
             SubCategories=Main_Body.css('div.list-container div.block-subcategories ul.subcategory-view-icons.subcategory-list li')
             b=0
-            for Page_No in range(1,self.Pages_Per_SubCategory_Limit+1):
-                for subCat in SubCategories:    
+            for subCat in SubCategories:    
+                for Page_No in range(1,self.Pages_Per_SubCategory_Limit+1):
                     SubCategory=items.SubcategoryItem()
                     SubCategory['SubcategoryTitle']=subCat.css('span.subcategory-name ::text').get()
                     SubCategory_relative_link=subCat.css('a').attrib['href']
-                    SubCategory_link= self.start_url +'/'+ SubCategory_relative_link + f'/?pageId={Page_No}' 
+                    SubCategory_link= self.start_url +'/'+ SubCategory_relative_link + f'?pageId={Page_No}' 
                     SubCategory['Products']=[]                
-                    print(Page_No,'///////////////////////////////////////////////////////////////')
+                    # # print(Page_No,'///////////////////////////////////////////////////////////////')
                     # if b>=3:
                     #     break
                     # else:
                     #     b += 1
                     #     # print(SubCategory_link)
                     yield scrapy.Request(url=SubCategory_link, callback=self.Product_List_parse, 
-                                        cb_kwargs={'sub_category': SubCategory ,
-                                                    'category':category,
-                                                    'images_list':images_list,
-                                                    'images_object':images_object})
+                                            cb_kwargs={'sub_category': SubCategory ,
+                                                        'category':category,
+                                                        'images_list':images_list,
+                                                        'images_object':images_object})
 
     def Product_List_parse(self, response, sub_category,category,images_list,images_object):
         Main_Body=response.css('div.flex-container > div#content div.list-container')
